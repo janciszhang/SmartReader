@@ -1,7 +1,7 @@
 import os
 
 txt_files = []
-for root, dirs, files in os.walk('.'):  # 遍历当前目录及子目录
+for root, dirs, files in os.walk('books/.'):  # 遍历当前目录及子目录
     for file in files:
         if file.endswith('.txt'):
             txt_files.append(os.path.join(file))  # 包含完整路径
