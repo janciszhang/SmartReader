@@ -64,8 +64,10 @@
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
             display: flex;
-            gap: 20px;
+            gap: 15px;
             align-items: center;
+            min-width: 500px;
+            justify-content: center;
         }
 
         button {
@@ -83,21 +85,37 @@
         }
 
         input[type="range"] {
-            width: 150px;
+            width: 120px;
             vertical-align: middle;
         }
 
         .speed-control {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
-        .encoding-selector {
-            margin-left: 15px;
-            padding: 6px;
+        .encoding-selector,
+        .mode-selector select,
+        .page-step-selector select {
+            padding: 4px 8px;
             border-radius: 4px;
             border: 1px solid #ddd;
+        }
+
+        .mode-selector,
+        .page-step-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-step-selector {
+            display: none;
+        }
+
+        .page-mode-active .page-step-selector {
+            display: flex;
         }
     </style>
 </head>
@@ -105,6 +123,7 @@
 <div class="library-section">
     <h3>图书馆</h3>
     <div>
+        <!-- 图书列表保持不变 -->
         <div class="book-link" onclick="loadLibraryBook('回廊亭杀人事件.txt')">回廊亭杀人事件</div>
         <div class="book-link" onclick="loadLibraryBook('请勿弃物.txt')">请勿弃物</div>
         <div class="book-link" onclick="loadLibraryBook('毕业——雪月花杀人游戏.txt')">毕业——雪月花杀人游戏</div>
@@ -171,6 +190,7 @@
         <div class="book-link" onclick="loadLibraryBook('流星之绊.txt')">流星之绊</div>
         <div class="book-link" onclick="loadLibraryBook('湖边凶杀案.txt')">湖边凶杀案</div>
         <div class="book-link" onclick="loadLibraryBook('杀人之门.txt')">杀人之门</div>
+        <!-- 其他书籍链接... -->
     </div>
 </div>
 
@@ -187,11 +207,22 @@
 <div id="readingArea"></div>
 
 <div class="controls">
+    <div class="mode-selector">
+        <select id="scrollMode" onchange="changeScrollMode()">
+            <option value="scroll">滚动模式</option>
+            <option value="page">分页模式</option>
+        </select>
+    </div>
+    <div class="page-step-selector">
+        <select id="pageStep" onchange="changePageStep()">
+            <option value="1">整页</option>
+            <option value="0.5">半页</option>
+        </select>
+    </div>
     <button id="toggleScroll" onclick="toggleScroll()">▶ 开始阅读</button>
     <div class="speed-control">
-        <label>速度：</label>
-        <input type="range" id="speedControl" min="1" max="10" value="5"
-               oninput="adjustSpeed(this.value)">
+        <label id="speedLabel">速度：</label>
+        <input type="range" id="speedControl" min="1" max="10" value="5" oninput="adjustSpeed(this.value)">
         <span id="speedValue">5</span>
     </div>
 </div>
@@ -200,8 +231,97 @@
     let isScrolling = false;
     let scrollInterval;
     let currentStep = 3;
+    let currentMode = 'scroll';
+    let pageStayTime = 2000;
+    let pageStep = 1;
 
-    // 统一文本处理函数
+    function changeScrollMode() {
+        currentMode = document.getElementById('scrollMode').value;
+        document.body.classList.toggle('page-mode-active', currentMode === 'page');
+        document.getElementById('speedLabel').textContent =
+            currentMode === 'scroll' ? '速度：' : '停留时间：';
+        if (isScrolling) resetScroll();
+    }
+
+    function changePageStep() {
+        pageStep = parseFloat(document.getElementById('pageStep').value);
+        if (isScrolling) resetScroll();
+    }
+
+    function toggleScroll() {
+        const button = document.getElementById('toggleScroll');
+        isScrolling = !isScrolling;
+        button.textContent = isScrolling ? '⏸ 暂停阅读' : '▶ 继续阅读';
+
+        if (isScrolling) {
+            startScroll();
+        } else {
+            stopScroll();
+        }
+    }
+
+    function startScroll() {
+        const readingArea = document.getElementById('readingArea');
+        if (readingArea.scrollTop + readingArea.clientHeight >= readingArea.scrollHeight) {
+            readingArea.scrollTop = 0;
+        }
+        currentMode === 'scroll' ? startScrollMode() : startPageMode();
+    }
+
+    function stopScroll() {
+        clearInterval(scrollInterval);
+    }
+
+    function resetScroll() {
+        stopScroll();
+        if (isScrolling) startScroll();
+    }
+
+    function startScrollMode() {
+        scrollInterval = setInterval(() => {
+            const readingArea = document.getElementById('readingArea');
+            const remaining = readingArea.scrollHeight - readingArea.scrollTop - readingArea.clientHeight;
+
+            if (remaining <= currentStep) {
+                readingArea.scrollTop = readingArea.scrollHeight;
+                toggleScroll();
+            } else {
+                readingArea.scrollTop += currentStep;
+            }
+        }, 50);
+    }
+
+    function startPageMode() {
+        const readingArea = document.getElementById('readingArea');
+        let currentPage = 0;
+        const pageHeight = readingArea.clientHeight * pageStep;
+        const totalPages = Math.ceil(readingArea.scrollHeight / pageHeight);
+
+        const scrollPage = () => {
+            if (currentPage >= totalPages) {
+                currentPage = 0;
+                toggleScroll();
+                return;
+            }
+            readingArea.scrollTop = currentPage * pageHeight;
+            currentPage++;
+        };
+
+        scrollPage();
+        scrollInterval = setInterval(scrollPage, pageStayTime);
+    }
+
+    function adjustSpeed(value) {
+        if (currentMode === 'scroll') {
+            currentStep = parseInt(value);
+            document.getElementById('speedValue').textContent = value;
+        } else {
+            pageStayTime = 1000 + (10 - value) * 500;
+            document.getElementById('speedValue').textContent = `${(pageStayTime / 1000).toFixed(1)}s`;
+        }
+        if (isScrolling) resetScroll();
+    }
+
     function processText(content) {
         return content
             .replace(/\n{3,}/g, '\n\n')
@@ -209,26 +329,33 @@
             .replace(/^\s+/gm, '');
     }
 
-    // 更新阅读区域内容
     function updateReadingArea(content) {
-        const formattedContent = processText(content);
-        document.getElementById('readingArea').textContent = formattedContent;
+        document.getElementById('readingArea').textContent = processText(content);
     }
 
-    // 上传本地文件
+    async function loadLibraryBook(filename) {
+        try {
+            const encoding = document.getElementById('encodingSelect').value;
+            const response = await fetch(`books/${filename}`);
+            const buffer = await response.arrayBuffer();
+            const decoder = new TextDecoder(encoding);
+            updateReadingArea(decoder.decode(buffer));
+        } catch (error) {
+            alert(`加载失败：${error.message}`);
+            console.error('加载失败:', error);
+        }
+    }
+
     function uploadFile() {
-        const fileInput = document.getElementById('fileInput');
-        const file = fileInput.files[0];
+        const file = document.getElementById('fileInput').files[0];
         const encoding = document.getElementById('encodingSelect').value;
 
-        if (file && file.type === "text/plain") {
+        if (file?.type === "text/plain") {
             const reader = new FileReader();
-            reader.onload = function (e) {
+            reader.onload = e => {
                 try {
-                    const buffer = e.target.result;
                     const decoder = new TextDecoder(encoding);
-                    const content = decoder.decode(new Uint8Array(buffer));
-                    updateReadingArea(content);
+                    updateReadingArea(decoder.decode(new Uint8Array(e.target.result)));
                 } catch (error) {
                     alert(`解码失败：${error.message}\n请尝试其他编码格式`);
                 }
@@ -236,60 +363,6 @@
             reader.readAsArrayBuffer(file);
         } else {
             alert("请选择有效的TXT文件");
-        }
-    }
-
-    // 加载图书馆书籍
-    async function loadLibraryBook(filename) {
-        try {
-            const encoding = document.getElementById('encodingSelect').value;
-            const response = await fetch(`books/${filename}`);
-            const buffer = await response.arrayBuffer();
-            const decoder = new TextDecoder(encoding);
-            const content = decoder.decode(buffer);
-            updateReadingArea(content);
-        } catch (error) {
-            alert(`加载失败：${error.message}`);
-            console.error('加载失败:', error);
-        }
-    }
-
-    // 滚动控制相关函数保持不变
-    function toggleScroll() {
-        const button = document.getElementById('toggleScroll');
-        const readingArea = document.getElementById('readingArea');
-
-        if (isScrolling) {
-            clearInterval(scrollInterval);
-            button.textContent = '▶ 继续阅读';
-            isScrolling = false;
-        } else {
-            button.textContent = '⏸ 暂停阅读';
-            isScrolling = true;
-
-            if (readingArea.scrollTop + readingArea.clientHeight >= readingArea.scrollHeight) {
-                readingArea.scrollTop = 0;
-            }
-
-            scrollInterval = setInterval(() => {
-                const remaining = readingArea.scrollHeight - (readingArea.scrollTop + readingArea.clientHeight);
-                remaining <= currentStep ? (readingArea.scrollTop = readingArea.scrollHeight, toggleScroll())
-                    : readingArea.scrollTop += currentStep;
-            }, 50);
-        }
-    }
-
-    function adjustSpeed(value) {
-        currentStep = parseInt(value);
-        document.getElementById('speedValue').textContent = value;
-        if (isScrolling) {
-            clearInterval(scrollInterval);
-            scrollInterval = setInterval(() => {
-                const readingArea = document.getElementById('readingArea');
-                const remaining = readingArea.scrollHeight - (readingArea.scrollTop + readingArea.clientHeight);
-                remaining <= currentStep ? (readingArea.scrollTop = readingArea.scrollHeight, toggleScroll())
-                    : readingArea.scrollTop += currentStep;
-            }, 50);
         }
     }
 </script>
