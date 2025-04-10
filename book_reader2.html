@@ -3,266 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <title>全功能小说阅读器</title>
-    <style>
-        body {
-            font-family: "Microsoft YaHei", sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-
-        .library-section {
-            margin-bottom: 15px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background: white;
-        }
-
-        .book-link {
-            cursor: pointer;
-            color: #007BFF;
-            padding: 5px 10px;
-            margin: 5px;
-            display: inline-block;
-            border-radius: 4px;
-            transition: background 0.3s;
-        }
-
-        .book-link:hover {
-            background-color: #e9f3ff;
-        }
-
-        .upload-section {
-            margin-bottom: 20px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background: white;
-        }
-
-        #readingArea {
-            height: 600px;
-            border: 1px solid #ccc;
-            padding: 25px;
-            margin: 20px 0;
-            overflow-y: scroll;
-            line-height: 1.8;
-            background: white;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            white-space: pre-wrap;
-        }
-
-        .controls {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            min-width: 400px;
-            justify-content: center;
-        }
-
-        button {
-            padding: 10px 20px;
-            cursor: pointer;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            transition: background 0.3s;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        input[type="range"] {
-            width: 150px;
-            vertical-align: middle;
-        }
-
-        .speed-control {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .encoding-selector,
-        .page-step-selector select {
-            padding: 4px 8px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-        }
-
-        .page-step-selector {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-    </style>
+    <!-- 引入外部样式 -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="library-section">
-    <div id="library-container"></div>
+<div id="library-container"></div>
 
-    <!-- 文件上传部分 -->
-    <div class="upload-section">
-        <input type="file" id="fileInput" accept=".txt">
-        <select id="encodingSelect" class="encoding-selector">
-            <option value="gbk">GBK</option>
-            <option value="utf-8">UTF-8</option>
-            <option value="gb2312">GB2312</option>
+<!-- 文件上传部分 -->
+<div class="upload-section">
+    <input type="file" id="fileInput" accept=".txt">
+    <select id="encodingSelect" class="encoding-selector">
+        <option value="gbk">GBK</option>
+        <option value="utf-8">UTF-8</option>
+        <option value="gb2312">GB2312</option>
+    </select>
+    <button onclick="uploadFile()">上传本地小说</button>
+</div>
+
+<!-- 阅读区域 -->
+<div id="readingArea"></div>
+
+<!-- 简化后的控制栏 -->
+<div class="controls">
+    <div class="page-step-selector">
+        <select id="pageStep" onchange="changePageStep()">
+            <option value="1">整页</option>
+            <option value="0.5">半页</option>
         </select>
-        <button onclick="uploadFile()">上传本地小说</button>
     </div>
-
-    <!-- 阅读区域 -->
-    <div id="readingArea"></div>
-
-    <!-- 简化后的控制栏 -->
-    <div class="controls">
-        <div class="page-step-selector">
-            <select id="pageStep" onchange="changePageStep()">
-                <option value="1">整页</option>
-                <option value="0.5">半页</option>
-            </select>
-        </div>
-        <button id="toggleScroll" onclick="toggleScroll()">▶ 开始阅读</button>
-        <div class="speed-control">
-            <label>停留时间：</label>
-            <input type="range" id="speedControl" min="1" max="10" value="5" oninput="adjustSpeed(this.value)">
-            <span id="speedValue">3.0s</span>
-        </div>
+    <button id="toggleScroll" onclick="toggleScroll()">▶ 开始阅读</button>
+    <div class="speed-control">
+        <label>停留时间：</label>
+        <input type="range" id="speedControl" min="1" max="10" value="5" oninput="adjustSpeed(this.value)">
+        <span id="speedValue">3.0s</span>
     </div>
+</div>
 
-    <script>
-        // 在原有脚本前添加动态加载代码
-        window.addEventListener('DOMContentLoaded', () => {
-            fetch('library.html')
-                .then(response => response.text())
-                .then(html => {
-                    document.getElementById('library-container').innerHTML = html;
-                });
-        });
+<script>
+    // 在原有脚本前添加动态加载代码
+    window.addEventListener('DOMContentLoaded', () => {
+        fetch('library.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('library-container').innerHTML = html;
+            });
+    });
 
-        // 保持原有JavaScript代码不变
-        let isScrolling = false;
-        let scrollInterval;
-        let pageStayTime = 3000; // 默认3秒
-        let pageStep = 1;
+    // 保持原有JavaScript代码不变
+    let isScrolling = false;
+    let scrollInterval;
+    let pageStayTime = 3000; // 默认3秒
+    let pageStep = 1;
 
-        function changePageStep() {
-            pageStep = parseFloat(document.getElementById('pageStep').value);
-            if (isScrolling) resetScroll();
-        }
+    function changePageStep() {
+        pageStep = parseFloat(document.getElementById('pageStep').value);
+        if (isScrolling) resetScroll();
+    }
 
-        function toggleScroll() {
-            const button = document.getElementById('toggleScroll');
-            isScrolling = !isScrolling;
-            button.textContent = isScrolling ? '⏸ 暂停阅读' : '▶ 继续阅读';
+    function toggleScroll() {
+        const button = document.getElementById('toggleScroll');
+        isScrolling = !isScrolling;
+        button.textContent = isScrolling ? '⏸ 暂停阅读' : '▶ 继续阅读';
 
-            if (isScrolling) {
-                startScroll();
-            } else {
-                stopScroll();
-            }
-        }
-
-        function startScroll() {
-            const readingArea = document.getElementById('readingArea');
-            if (readingArea.scrollTop + readingArea.clientHeight >= readingArea.scrollHeight) {
-                readingArea.scrollTop = 0;
-            }
-            startPageMode();
-        }
-
-        function stopScroll() {
-            clearInterval(scrollInterval);
-        }
-
-        function resetScroll() {
+        if (isScrolling) {
+            startScroll();
+        } else {
             stopScroll();
-            if (isScrolling) startScroll();
         }
+    }
 
-        function startPageMode() {
-            const readingArea = document.getElementById('readingArea');
-            let currentPage = 0;
-            const pageHeight = readingArea.clientHeight * pageStep;
-            const totalPages = Math.ceil(readingArea.scrollHeight / pageHeight);
-
-            const scrollPage = () => {
-                if (currentPage >= totalPages) {
-                    currentPage = 0;
-                    toggleScroll();
-                    return;
-                }
-                readingArea.scrollTop = currentPage * pageHeight;
-                currentPage++;
-            };
-
-            scrollPage();
-            scrollInterval = setInterval(scrollPage, pageStayTime);
+    function startScroll() {
+        const readingArea = document.getElementById('readingArea');
+        if (readingArea.scrollTop + readingArea.clientHeight >= readingArea.scrollHeight) {
+            readingArea.scrollTop = 0;
         }
+        startPageMode();
+    }
 
-        function adjustSpeed(value) {
-            pageStayTime = 1000 + (10 - value) * 500; // 1-6秒
-            document.getElementById('speedValue').textContent = `${(pageStayTime / 1000).toFixed(1)}s`;
-            if (isScrolling) resetScroll();
-        }
+    function stopScroll() {
+        clearInterval(scrollInterval);
+    }
 
-        // 保持原有的文本处理和文件加载函数不变
-        function processText(content) {
-            return content
-                .replace(/\n{3,}/g, '\n\n')
-                .replace(/　　/g, '    ')
-                .replace(/^\s+/gm, '');
-        }
+    function resetScroll() {
+        stopScroll();
+        if (isScrolling) startScroll();
+    }
 
-        function updateReadingArea(content) {
-            document.getElementById('readingArea').textContent = processText(content);
-        }
+    function startPageMode() {
+        const readingArea = document.getElementById('readingArea');
+        let currentPage = 0;
+        const pageHeight = readingArea.clientHeight * pageStep;
+        const totalPages = Math.ceil(readingArea.scrollHeight / pageHeight);
 
-        async function loadLibraryBook(filename) {
-            try {
-                const encoding = document.getElementById('encodingSelect').value;
-                const response = await fetch(`books/${filename}`);
-                const buffer = await response.arrayBuffer();
-                const decoder = new TextDecoder(encoding);
-                updateReadingArea(decoder.decode(buffer));
-            } catch (error) {
-                alert(`加载失败：${error.message}`);
-                console.error('加载失败:', error);
+        const scrollPage = () => {
+            if (currentPage >= totalPages) {
+                currentPage = 0;
+                toggleScroll();
+                return;
             }
-        }
+            readingArea.scrollTop = currentPage * pageHeight;
+            currentPage++;
+        };
 
-        function uploadFile() {
-            const file = document.getElementById('fileInput').files[0];
+        scrollPage();
+        scrollInterval = setInterval(scrollPage, pageStayTime);
+    }
+
+    function adjustSpeed(value) {
+        pageStayTime = 1000 + (10 - value) * 500; // 1-6秒
+        document.getElementById('speedValue').textContent = `${(pageStayTime / 1000).toFixed(1)}s`;
+        if (isScrolling) resetScroll();
+    }
+
+    // 保持原有的文本处理和文件加载函数不变
+    function processText(content) {
+        return content
+            .replace(/\n{3,}/g, '\n\n')
+            .replace(/　　/g, '    ')
+            .replace(/^\s+/gm, '');
+    }
+
+    function updateReadingArea(content) {
+        document.getElementById('readingArea').textContent = processText(content);
+    }
+
+    async function loadLibraryBook(filename) {
+        try {
             const encoding = document.getElementById('encodingSelect').value;
-
-            if (file?.type === "text/plain") {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    try {
-                        const decoder = new TextDecoder(encoding);
-                        updateReadingArea(decoder.decode(new Uint8Array(e.target.result)));
-                    } catch (error) {
-                        alert(`解码失败：${error.message}\n请尝试其他编码格式`);
-                    }
-                };
-                reader.readAsArrayBuffer(file);
-            } else {
-                alert("请选择有效的TXT文件");
-            }
+            const response = await fetch(`books/${filename}`);
+            const buffer = await response.arrayBuffer();
+            const decoder = new TextDecoder(encoding);
+            updateReadingArea(decoder.decode(buffer));
+        } catch (error) {
+            alert(`加载失败：${error.message}`);
+            console.error('加载失败:', error);
         }
-    </script>
+    }
+
+    function uploadFile() {
+        const file = document.getElementById('fileInput').files[0];
+        const encoding = document.getElementById('encodingSelect').value;
+
+        if (file?.type === "text/plain") {
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const decoder = new TextDecoder(encoding);
+                    updateReadingArea(decoder.decode(new Uint8Array(e.target.result)));
+                } catch (error) {
+                    alert(`解码失败：${error.message}\n请尝试其他编码格式`);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        } else {
+            alert("请选择有效的TXT文件");
+        }
+    }
+</script>
 </body>
 </html>
