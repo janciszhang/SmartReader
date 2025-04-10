@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>小说阅读器（支持中文编码）</title>
+    <style>
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .upload-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+        }
+
+        #readingArea {
+            height: 600px;
+            border: 1px solid #ccc;
+            padding: 25px;
+            margin: 20px 0;
+            overflow-y: scroll;
+            line-height: 1.8;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        input[type="range"] {
+            width: 150px;
+            vertical-align: middle;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .encoding-selector {
+            margin-left: 15px;
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="upload-section">
+        <input type="file" id="fileInput" accept=".txt">
+        <select id="encodingSelect" class="encoding-selector">
+            <option value="gbk">GBK</option>
+            <option value="utf-8">UTF-8</option>
+            <option value="gb2312">GB2312</option>
+        </select>
+        <button onclick="uploadFile()">上传小说</button>
+    </div>
+
+    <div id="readingArea"></div>
+
+    <div class="controls">
+        <button id="toggleScroll" onclick="toggleScroll()">▶ 开始阅读</button>
+        <div class="speed-control">
+            <label>速度：</label>
+            <input type="range" id="speedControl" min="1" max="10" value="5"
+                   oninput="adjustSpeed(this.value)">
+            <span id="speedValue">5</span>
+        </div>
+    </div>
+
+    <script>
+        let isScrolling = false;
+        let scrollInterval;
+        let currentStep = 3;
+
+        function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            const encoding = document.getElementById('encodingSelect').value;
+
+            if (file && file.type === "text/plain") {
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    try {
+                        const buffer = e.target.result;
+                        const decoder = new TextDecoder(encoding);
+                        const content = decoder.decode(new Uint8Array(buffer));
+
+                        // 增强文本格式化
+                        const formattedContent = content
+                            .replace(/\n{3,}/g, '<br><br>')  // 多个空行保留两个
+                            .replace(/\n/g, '<br>')
+                            .replace(/　　/g, '&emsp;&emsp;') // 全角空格处理
+                            .replace(/ /g, '&nbsp;'); // 半角空格处理
+
+                        document.getElementById('readingArea').innerHTML = formattedContent;
+                    } catch (error) {
+                        alert(`解码失败：${error.message}\n请尝试其他编码格式`);
+                    }
+                };
+
+                reader.readAsArrayBuffer(file);
+            } else {
+                alert("请选择有效的TXT文件");
+            }
+        }
+
+        function toggleScroll() {
+            const button = document.getElementById('toggleScroll');
+            const readingArea = document.getElementById('readingArea');
+
+            if (isScrolling) {
+                clearInterval(scrollInterval);
+                button.textContent = '▶ 继续阅读';
+                isScrolling = false;
+            } else {
+                button.textContent = '⏸ 暂停阅读';
+                isScrolling = true;
+
+                if (readingArea.scrollTop + readingArea.clientHeight >= readingArea.scrollHeight) {
+                    readingArea.scrollTop = 0;
+                }
+
+                scrollInterval = setInterval(() => {
+                    const remaining = readingArea.scrollHeight - (readingArea.scrollTop + readingArea.clientHeight);
+
+                    if (remaining <= currentStep) {
+                        readingArea.scrollTop = readingArea.scrollHeight;
+                        toggleScroll();
+                    } else {
+                        readingArea.scrollTop += currentStep;
+                    }
+                }, 50);
+            }
+        }
+
+        function adjustSpeed(value) {
+            currentStep = parseInt(value);
+            document.getElementById('speedValue').textContent = value;
+
+            if (isScrolling) {
+                clearInterval(scrollInterval);
+                scrollInterval = setInterval(() => {
+                    const readingArea = document.getElementById('readingArea');
+                    const remaining = readingArea.scrollHeight - (readingArea.scrollTop + readingArea.clientHeight);
+
+                    if (remaining <= currentStep) {
+                        readingArea.scrollTop = readingArea.scrollHeight;
+                        toggleScroll();
+                    } else {
+                        readingArea.scrollTop += currentStep;
+                    }
+                }, 50);
+            }
+        }
+    </script>
+</body>
+</html>
