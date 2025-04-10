@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>全功能小说阅读器</title>
+    <style>
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .library-section {
+            margin-bottom: 15px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .book-link {
+            cursor: pointer;
+            color: #007BFF;
+            padding: 5px 10px;
+            margin: 5px;
+            display: inline-block;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .book-link:hover {
+            background-color: #e9f3ff;
+        }
+
+        .upload-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+        }
+
+        #readingArea {
+            height: 600px;
+            border: 1px solid #ccc;
+            padding: 25px;
+            margin: 20px 0;
+            overflow-y: scroll;
+            line-height: 1.8;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            white-space: pre-wrap;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        input[type="range"] {
+            width: 150px;
+            vertical-align: middle;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .encoding-selector {
+            margin-left: 15px;
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+<div class="library-section">
+    <h3>图书馆</h3>
+    <div>
+        <div class="book-link" onclick="loadLibraryBook('回廊亭杀人事件.txt')">回廊亭杀人事件</div>
+        <div class="book-link" onclick="loadLibraryBook('请勿弃物.txt')">请勿弃物</div>
+        <div class="book-link" onclick="loadLibraryBook('毕业——雪月花杀人游戏.txt')">毕业——雪月花杀人游戏</div>
+        <div class="book-link" onclick="loadLibraryBook('名侦探的规条.txt')">名侦探的规条</div>
+        <div class="book-link" onclick="loadLibraryBook('使命与心的极限.txt')">使命与心的极限</div>
+        <div class="book-link" onclick="loadLibraryBook('嫌疑犯X的献身.txt')">嫌疑犯X的献身</div>
+        <div class="book-link" onclick="loadLibraryBook('绑架游戏.txt')">绑架游戏</div>
+        <div class="book-link" onclick="loadLibraryBook('同级生.txt')">同级生</div>
+        <div class="book-link" onclick="loadLibraryBook('线香花火.txt')">线香花火</div>
+        <div class="book-link" onclick="loadLibraryBook('预知梦.txt')">预知梦</div>
+        <div class="book-link" onclick="loadLibraryBook('信.txt')">信</div>
+        <div class="book-link" onclick="loadLibraryBook('十一字的杀人.txt')">十一字的杀人</div>
+        <div class="book-link" onclick="loadLibraryBook('侦探伽利略.txt')">侦探伽利略</div>
+        <div class="book-link" onclick="loadLibraryBook('天使之耳.txt')">天使之耳</div>
+        <div class="book-link" onclick="loadLibraryBook('雪地杀机.txt')">雪地杀机</div>
+        <div class="book-link" onclick="loadLibraryBook('白马山庄杀人事件.txt')">白马山庄杀人事件</div>
+        <div class="book-link" onclick="loadLibraryBook('少女委托人.txt')">少女委托人</div>
+        <div class="book-link" onclick="loadLibraryBook('怪人们.txt')">怪人们</div>
+        <div class="book-link" onclick="loadLibraryBook('白夜行.txt')">白夜行</div>
+        <div class="book-link" onclick="loadLibraryBook('不笑的人.txt')">不笑的人</div>
+        <div class="book-link" onclick="loadLibraryBook('再生魔术之女.txt')">再生魔术之女</div>
+        <div class="book-link" onclick="loadLibraryBook('伊豆旅馆的神秘案.txt')">伊豆旅馆的神秘案</div>
+        <div class="book-link" onclick="loadLibraryBook('平行世界的爱情故事.txt')">平行世界的爱情故事</div>
+        <div class="book-link" onclick="loadLibraryBook('伪装之夜.txt')">伪装之夜</div>
+        <div class="book-link" onclick="loadLibraryBook('玫瑰与匕首.txt')">玫瑰与匕首</div>
+        <div class="book-link" onclick="loadLibraryBook('美丽的凶器.txt')">美丽的凶器</div>
+        <div class="book-link" onclick="loadLibraryBook('红手指.txt')">红手指</div>
+        <div class="book-link" onclick="loadLibraryBook('彷徨之刃.txt')">彷徨之刃</div>
+        <div class="book-link" onclick="loadLibraryBook('黑笑小说.txt')">黑笑小说</div>
+        <div class="book-link" onclick="loadLibraryBook('秘密.txt')">秘密</div>
+        <div class="book-link" onclick="loadLibraryBook('灰姑娘白夜行.txt')">灰姑娘白夜行</div>
+        <div class="book-link" onclick="loadLibraryBook('沉睡的森林.txt')">沉睡的森林</div>
+        <div class="book-link" onclick="loadLibraryBook('钟情喷雾.txt')">钟情喷雾</div>
+        <div class="book-link" onclick="loadLibraryBook('圣女的救济.txt')">圣女的救济</div>
+        <div class="book-link" onclick="loadLibraryBook('濒死之眼.txt')">濒死之眼</div>
+        <div class="book-link" onclick="loadLibraryBook('毒笑小说.txt')">毒笑小说</div>
+        <div class="book-link" onclick="loadLibraryBook('无能药.txt')">无能药</div>
+        <div class="book-link" onclick="loadLibraryBook('疯狂的电击.txt')">疯狂的电击</div>
+        <div class="book-link" onclick="loadLibraryBook('跟踪狂入门.txt')">跟踪狂入门</div>
+        <div class="book-link" onclick="loadLibraryBook('显微眼.txt')">显微眼</div>
+        <div class="book-link" onclick="loadLibraryBook('名侦探守则.txt')">名侦探守则</div>
+        <div class="book-link" onclick="loadLibraryBook('超·杀人事件.txt')">超·杀人事件</div>
+        <div class="book-link" onclick="loadLibraryBook('过去我死去的家.txt')">过去我死去的家</div>
+        <div class="book-link" onclick="loadLibraryBook('我杀了他解谜篇.txt')">我杀了他解谜篇</div>
+        <div class="book-link" onclick="loadLibraryBook('过去的人.txt')">过去的人</div>
+        <div class="book-link" onclick="loadLibraryBook('评审会.txt')">评审会</div>
+        <div class="book-link" onclick="loadLibraryBook('放学后.txt')">放学后</div>
+        <div class="book-link" onclick="loadLibraryBook('苦涩的蜜月.txt')">苦涩的蜜月</div>
+        <div class="book-link" onclick="loadLibraryBook('怪笑小说.txt')">怪笑小说</div>
+        <div class="book-link" onclick="loadLibraryBook('神探伽利略.txt')">神探伽利略</div>
+        <div class="book-link" onclick="loadLibraryBook('名侦探的诅咒.txt')">名侦探的诅咒</div>
+        <div class="book-link" onclick="loadLibraryBook('布鲁特斯的心脏.txt')">布鲁特斯的心脏</div>
+        <div class="book-link" onclick="loadLibraryBook('恶意.txt')">恶意</div>
+        <div class="book-link" onclick="loadLibraryBook('我杀了他.txt')">我杀了他</div>
+        <div class="book-link" onclick="loadLibraryBook('寒冷的灼热.txt')">寒冷的灼热</div>
+        <div class="book-link" onclick="loadLibraryBook('圣诞阿姨.txt')">圣诞阿姨</div>
+        <div class="book-link" onclick="loadLibraryBook('时生.txt')">时生</div>
+        <div class="book-link" onclick="loadLibraryBook('绑架天国.txt')">绑架天国</div>
+        <div class="book-link" onclick="loadLibraryBook('毕业前杀人游戏.txt')">毕业前杀人游戏</div>
+        <div class="book-link" onclick="loadLibraryBook('伽利略的苦恼.txt')">伽利略的苦恼</div>
+        <div class="book-link" onclick="loadLibraryBook('又一次助跑.txt')">又一次助跑</div>
+        <div class="book-link" onclick="loadLibraryBook('没有凶手的杀人夜.txt')">没有凶手的杀人夜</div>
+        <div class="book-link" onclick="loadLibraryBook('侦探俱乐部.txt')">侦探俱乐部</div>
+        <div class="book-link" onclick="loadLibraryBook('流星之绊.txt')">流星之绊</div>
+        <div class="book-link" onclick="loadLibraryBook('湖边凶杀案.txt')">湖边凶杀案</div>
+        <div class="book-link" onclick="loadLibraryBook('杀人之门.txt')">杀人之门</div>
+    </div>
+</div>
+
+<div class="upload-section">
+    <input type="file" id="fileInput" accept=".txt">
+    <select id="encodingSelect" class="encoding-selector">
+        <option value="gbk">GBK</option>
+        <option value="utf-8">UTF-8</option>
+        <option value="gb2312">GB2312</option>
+    </select>
+    <button onclick="uploadFile()">上传本地小说</button>
+</div>
+
+<div id="readingArea"></div>
+
+<div class="controls">
+    <button id="toggleScroll" onclick="toggleScroll()">▶ 开始阅读</button>
+    <div class="speed-control">
+        <label>速度：</label>
+        <input type="range" id="speedControl" min="1" max="10" value="5"
+               oninput="adjustSpeed(this.value)">
+        <span id="speedValue">5</span>
+    </div>
+</div>
+
+<script>
+    let isScrolling = false;
+    let scrollInterval;
+    let currentStep = 3;
+
+    // 统一文本处理函数
+    function processText(content) {
+        return content
+            .replace(/\n{3,}/g, '\n\n')
+            .replace(/　　/g, '    ')
+            .replace(/^\s+/gm, '');
+    }
+
+    // 更新阅读区域内容
+    function updateReadingArea(content) {
+        const formattedContent = processText(content);
+        document.getElementById('readingArea').textContent = formattedContent;
+    }
+
+    // 上传本地文件
+    function uploadFile() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+        const encoding = document.getElementById('encodingSelect').value;
+
+        if (file && file.type === "text/plain") {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const buffer = e.target.result;
+                    const decoder = new TextDecoder(encoding);
+                    const content = decoder.decode(new Uint8Array(buffer));
+                    updateReadingArea(content);
+                } catch (error) {
+                    alert(`解码失败：${error.message}\n请尝试其他编码格式`);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        } else {
+            alert("请选择有效的TXT文件");
+        }
+    }
+
+    // 加载图书馆书籍
+    async function loadLibraryBook(filename) {
+        try {
+            const encoding = document.getElementById('encodingSelect').value;
+            const response = await fetch(`books/${filename}`);
+            const buffer = await response.arrayBuffer();
+            const decoder = new TextDecoder(encoding);
+            const content = decoder.decode(buffer);
+            updateReadingArea(content);
+        } catch (error) {
+            alert(`加载失败：${error.message}`);
+            console.error('加载失败:', error);
+        }
+    }
+
+    // 滚动控制相关函数保持不变
+    function toggleScroll() {
+        const button = document.getElementById('toggleScroll');
+        const readingArea = document.getElementById('readingArea');
+
+        if (isScrolling) {
+            clearInterval(scrollInterval);
+            button.textContent = '▶ 继续阅读';
+            isScrolling = false;
+        } else {
+            button.textContent = '⏸ 暂停阅读';
+            isScrolling = true;
+
+            if (readingArea.scrollTop + readingArea.clientHeight >= readingArea.scrollHeight) {
+                readingArea.scrollTop = 0;
+            }
+
+            scrollInterval = setInterval(() => {
+                const remaining = readingArea.scrollHeight - (readingArea.scrollTop + readingArea.clientHeight);
+                remaining <= currentStep ? (readingArea.scrollTop = readingArea.scrollHeight, toggleScroll())
+                    : readingArea.scrollTop += currentStep;
+            }, 50);
+        }
+    }
+
+    function adjustSpeed(value) {
+        currentStep = parseInt(value);
+        document.getElementById('speedValue').textContent = value;
+        if (isScrolling) {
+            clearInterval(scrollInterval);
+            scrollInterval = setInterval(() => {
+                const readingArea = document.getElementById('readingArea');
+                const remaining = readingArea.scrollHeight - (readingArea.scrollTop + readingArea.clientHeight);
+                remaining <= currentStep ? (readingArea.scrollTop = readingArea.scrollHeight, toggleScroll())
+                    : readingArea.scrollTop += currentStep;
+            }, 50);
+        }
+    }
+</script>
+</body>
+</html>
